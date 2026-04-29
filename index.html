@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>「ARCH」 SUIKA PROTOCOL</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -181,6 +182,74 @@
       0%   { transform: translateY(0); opacity: 1; }
       100% { transform: translateY(-50px); opacity: 0; }
     }
+    /* ── CAPTURE BUTTON ── */
+    #capture-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 20px; background: transparent;
+      border: 1px solid rgba(255,255,255,.5); color: rgba(255,255,255,.7);
+      font-family: var(--font); font-size: 9px; letter-spacing: 3px; font-weight: 700;
+      transition: .25s; position: relative; overflow: hidden;
+      box-shadow: 0 0 10px rgba(255,255,255,.05);
+    }
+    #capture-btn::before {
+      content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+      transition: .4s;
+    }
+    #capture-btn:hover { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 22px rgba(255,255,255,.5); }
+    #capture-btn:hover::before { left: 100%; }
+    #capture-btn.capturing { pointer-events: none; opacity: .5; }
+    .cam-icon { font-size: 13px; line-height: 1; }
+
+    /* Flash overlay for capture feel */
+    #flash {
+      position: fixed; inset: 0; background: #fff;
+      opacity: 0; pointer-events: none; z-index: 99999;
+      transition: opacity .08s ease;
+    }
+    #flash.on { opacity: 0.7; }
+
+    /* Share modal */
+    #share-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,.88);
+      z-index: 50000; display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+    #share-modal.on { display: flex; }
+    .share-box {
+      border: 1px solid rgba(255,255,255,.5);
+      background: #000; padding: 28px 28px 22px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+      max-width: 440px; width: 90%;
+      box-shadow: 0 0 50px rgba(255,255,255,.08);
+      position: relative;
+    }
+    .share-box::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, #fff, transparent);
+    }
+    .share-label { font-size: 9px; letter-spacing: 4px; color: rgba(255,255,255,.5); }
+    .share-title { font-size: 16px; font-weight: 900; letter-spacing: 4px; text-shadow: 0 0 15px rgba(255,255,255,.6); }
+    #share-preview {
+      width: 100%; border: 1px solid rgba(255,255,255,.2);
+      box-shadow: 0 0 20px rgba(255,255,255,.06);
+      border-radius: 2px;
+    }
+    .share-btns { display: flex; gap: 10px; width: 100%; }
+    .share-btn {
+      flex: 1; padding: 11px 0; background: transparent;
+      border: 1px solid rgba(255,255,255,.4); color: rgba(255,255,255,.8);
+      font-family: var(--font); font-size: 9px; letter-spacing: 3px; font-weight: 700;
+      transition: .2s; position: relative; overflow: hidden;
+    }
+    .share-btn.primary { border-color: #fff; color: #fff; box-shadow: 0 0 12px rgba(255,255,255,.15); }
+    .share-btn:hover { background: #fff; color: #000; box-shadow: 0 0 20px #fff; }
+    .share-close {
+      font-size: 9px; letter-spacing: 3px; color: rgba(255,255,255,.3);
+      border: none; background: transparent; font-family: var(--font);
+      transition: color .2s; padding: 4px 12px;
+    }
+    .share-close:hover { color: #fff; }
   </style>
 </head>
 <body>
@@ -188,6 +257,21 @@
 <div id="cursor"></div>
 <div class="scanline"></div>
 <div id="notif"></div>
+<div id="flash"></div>
+
+<!-- ── SHARE MODAL ── -->
+<div id="share-modal">
+  <div class="share-box">
+    <div class="share-label">SCORE_RECORD_CAPTURED</div>
+    <div class="share-title">「ARCH」 SUIKA PROTOCOL</div>
+    <img id="share-preview" src="" alt="capture">
+    <div class="share-btns">
+      <button class="share-btn primary" onclick="downloadCapture()">[ DOWNLOAD ]</button>
+      <button class="share-btn" onclick="shareCapture()" id="share-native-btn">[ SHARE ]</button>
+    </div>
+    <button class="share-close" onclick="closeShareModal()">[ CLOSE ]</button>
+  </div>
+</div>
 
 <!-- ── HEADER ── -->
 <header>
@@ -214,6 +298,9 @@
       <div class="box-label">BEST</div>
       <div class="box-val sm" id="best-disp">0</div>
     </div>
+    <button id="capture-btn" onclick="captureScreen()">
+      <span class="cam-icon">⊡</span> CAPTURE_SCORE
+    </button>
     <div class="box">
       <div class="box-label">NEXT UNIT</div>
       <div id="next-wrap">
@@ -755,7 +842,120 @@ canvas.addEventListener('touchend', e => {
   dropUnit(e.changedTouches[0].clientX - r.left);
 });
 
-// ── CLOCK ──
+
+// ── CAPTURE & SHARE ──
+let capturedDataURL = null;
+
+async function captureScreen() {
+  const btn = document.getElementById('capture-btn');
+  btn.classList.add('capturing');
+  btn.textContent = '...';
+
+  // Flash effect
+  const flash = document.getElementById('flash');
+  flash.classList.add('on');
+  setTimeout(() => flash.classList.remove('on'), 120);
+
+  try {
+    // Capture the whole app area
+    const target = document.getElementById('app');
+    const captureCanvas = await html2canvas(target, {
+      backgroundColor: '#000000',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+    });
+
+    // Composite: add score overlay onto captured image
+    const out = document.createElement('canvas');
+    out.width  = captureCanvas.width;
+    out.height = captureCanvas.height;
+    const oc = out.getContext('2d');
+
+    // Draw capture
+    oc.drawImage(captureCanvas, 0, 0);
+
+    // Overlay: bottom banner
+    const bh = 80 * 2;
+    oc.fillStyle = 'rgba(0,0,0,0.82)';
+    oc.fillRect(0, out.height - bh, out.width, bh);
+    oc.strokeStyle = 'rgba(255,255,255,0.35)';
+    oc.lineWidth = 1;
+    oc.beginPath();
+    oc.moveTo(0, out.height - bh);
+    oc.lineTo(out.width, out.height - bh);
+    oc.stroke();
+
+    // Score text
+    oc.fillStyle = 'rgba(255,255,255,0.45)';
+    oc.font = `700 ${14*2}px Orbitron, monospace`;
+    oc.textAlign = 'left';
+    oc.fillText('「ARCH」 SUIKA PROTOCOL', 28*2, out.height - bh + 26*2);
+
+    oc.fillStyle = '#ffffff';
+    oc.font = `900 ${22*2}px Orbitron, monospace`;
+    oc.fillText(`SCORE  ${score.toLocaleString()}`, 28*2, out.height - bh + 50*2);
+
+    oc.fillStyle = 'rgba(255,255,255,0.3)';
+    oc.font = `400 ${10*2}px Orbitron, monospace`;
+    oc.textAlign = 'right';
+    oc.fillText(`BEST: ${bestScore.toLocaleString()}`, out.width - 28*2, out.height - bh + 44*2);
+
+    capturedDataURL = out.toDataURL('image/png');
+
+    // Show preview in modal
+    document.getElementById('share-preview').src = capturedDataURL;
+    document.getElementById('share-modal').classList.add('on');
+
+    // Hide native share btn if not supported
+    document.getElementById('share-native-btn').style.display =
+      navigator.share ? '' : 'none';
+
+    notify('SCORE_RECORD_CAPTURED — SELECT_ACTION');
+  } catch (e) {
+    notify('CAPTURE_FAILED: ' + e.message);
+  }
+
+  btn.classList.remove('capturing');
+  btn.innerHTML = '<span class="cam-icon">⊡</span> CAPTURE_SCORE';
+}
+
+function downloadCapture() {
+  if (!capturedDataURL) return;
+  const a = document.createElement('a');
+  a.href = capturedDataURL;
+  a.download = `ARCH_SUIKA_${score}_${Date.now()}.png`;
+  a.click();
+  notify('IMAGE_SAVED: ARCH_SUIKA_' + score + '.png');
+  closeShareModal();
+}
+
+async function shareCapture() {
+  if (!capturedDataURL || !navigator.share) return;
+  try {
+    const blob = await (await fetch(capturedDataURL)).blob();
+    const file = new File([blob], `ARCH_SUIKA_${score}.png`, { type: 'image/png' });
+    await navigator.share({
+      title: '「ARCH」 SUIKA PROTOCOL',
+      text: `SCORE: ${score.toLocaleString()} — 「ARCH」 SUIKA PROTOCOL`,
+      files: [file],
+    });
+    notify('SCORE_SHARED_SUCCESSFULLY');
+  } catch (e) {
+    if (e.name !== 'AbortError') notify('SHARE_FAILED: ' + e.message);
+  }
+  closeShareModal();
+}
+
+function closeShareModal() {
+  document.getElementById('share-modal').classList.remove('on');
+}
+
+// Close modal on backdrop click
+document.getElementById('share-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeShareModal();
+});
 setInterval(() => {
   document.getElementById('clock').textContent =
     new Date().toLocaleTimeString('en-GB');

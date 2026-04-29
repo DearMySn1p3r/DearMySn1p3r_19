@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>「ARCH」 SUIKA PROTOCOL</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -849,7 +848,7 @@ let capturedDataURL = null;
 async function captureScreen() {
   const btn = document.getElementById('capture-btn');
   btn.classList.add('capturing');
-  btn.textContent = '...';
+  btn.innerHTML = '...';
 
   // Flash effect
   const flash = document.getElementById('flash');
@@ -857,64 +856,87 @@ async function captureScreen() {
   setTimeout(() => flash.classList.remove('on'), 120);
 
   try {
-    // Capture the whole app area
-    const target = document.getElementById('app');
-    const captureCanvas = await html2canvas(target, {
-      backgroundColor: '#000000',
-      scale: 2,
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-    });
+    // ── 게임 캔버스를 직접 합성 ──
+    const gameCanvas = document.getElementById('gc');
+    const GW = gameCanvas.width;
+    const GH = gameCanvas.height;
 
-    // Composite: add score overlay onto captured image
+    // 배너 높이
+    const BANNER = 80;
+    const PAD = 24;
+
     const out = document.createElement('canvas');
-    out.width  = captureCanvas.width;
-    out.height = captureCanvas.height;
+    out.width  = GW;
+    out.height = GH + BANNER;
     const oc = out.getContext('2d');
 
-    // Draw capture
-    oc.drawImage(captureCanvas, 0, 0);
+    // ① 게임 화면 그대로 복사
+    oc.drawImage(gameCanvas, 0, 0);
 
-    // Overlay: bottom banner
-    const bh = 80 * 2;
-    oc.fillStyle = 'rgba(0,0,0,0.82)';
-    oc.fillRect(0, out.height - bh, out.width, bh);
-    oc.strokeStyle = 'rgba(255,255,255,0.35)';
+    // ② 상단 타이틀 바 (반투명)
+    oc.fillStyle = 'rgba(0,0,0,0.75)';
+    oc.fillRect(0, 0, GW, 38);
+    oc.strokeStyle = 'rgba(255,255,255,0.25)';
     oc.lineWidth = 1;
-    oc.beginPath();
-    oc.moveTo(0, out.height - bh);
-    oc.lineTo(out.width, out.height - bh);
-    oc.stroke();
-
-    // Score text
-    oc.fillStyle = 'rgba(255,255,255,0.45)';
-    oc.font = `700 ${14*2}px Orbitron, monospace`;
+    oc.beginPath(); oc.moveTo(0,38); oc.lineTo(GW,38); oc.stroke();
+    oc.fillStyle = 'rgba(255,255,255,0.55)';
+    oc.font = '700 10px Orbitron, monospace';
     oc.textAlign = 'left';
-    oc.fillText('「ARCH」 SUIKA PROTOCOL', 28*2, out.height - bh + 26*2);
+    oc.fillText('「ARCH」 SUIKA PROTOCOL', PAD, 24);
+
+    // ③ 하단 점수 배너
+    const BY = GH; // banner starts here
+    oc.fillStyle = '#000';
+    oc.fillRect(0, BY, GW, BANNER);
+    oc.strokeStyle = 'rgba(255,255,255,0.4)';
+    oc.lineWidth = 1;
+    oc.beginPath(); oc.moveTo(0, BY); oc.lineTo(GW, BY); oc.stroke();
+
+    // 배너 내부 좌측 라인 포인트
+    oc.strokeStyle = 'rgba(255,255,255,0.15)';
+    oc.beginPath(); oc.moveTo(PAD, BY+10); oc.lineTo(PAD, BY+BANNER-10); oc.stroke();
+
+    oc.fillStyle = 'rgba(255,255,255,0.4)';
+    oc.font = '700 9px Orbitron, monospace';
+    oc.textAlign = 'left';
+    oc.fillText('CURRENT_SCORE', PAD + 12, BY + 26);
 
     oc.fillStyle = '#ffffff';
-    oc.font = `900 ${22*2}px Orbitron, monospace`;
-    oc.fillText(`SCORE  ${score.toLocaleString()}`, 28*2, out.height - bh + 50*2);
+    oc.font = '900 28px Orbitron, monospace';
+    oc.shadowColor = '#fff';
+    oc.shadowBlur = 12;
+    oc.fillText(score.toLocaleString(), PAD + 12, BY + 58);
+    oc.shadowBlur = 0;
 
-    oc.fillStyle = 'rgba(255,255,255,0.3)';
-    oc.font = `400 ${10*2}px Orbitron, monospace`;
+    // 우측 BEST
+    oc.fillStyle = 'rgba(255,255,255,0.35)';
+    oc.font = '700 9px Orbitron, monospace';
     oc.textAlign = 'right';
-    oc.fillText(`BEST: ${bestScore.toLocaleString()}`, out.width - 28*2, out.height - bh + 44*2);
+    oc.fillText('BEST', GW - PAD, BY + 26);
+    oc.fillStyle = 'rgba(255,255,255,0.7)';
+    oc.font = '700 16px Orbitron, monospace';
+    oc.fillText(bestScore.toLocaleString(), GW - PAD, BY + 50);
+
+    // 구분선
+    oc.strokeStyle = 'rgba(255,255,255,0.1)';
+    oc.lineWidth = 1;
+    oc.beginPath();
+    oc.moveTo(GW - 110, BY + 10);
+    oc.lineTo(GW - 110, BY + BANNER - 10);
+    oc.stroke();
 
     capturedDataURL = out.toDataURL('image/png');
 
-    // Show preview in modal
+    // 모달 표시
     document.getElementById('share-preview').src = capturedDataURL;
     document.getElementById('share-modal').classList.add('on');
-
-    // Hide native share btn if not supported
     document.getElementById('share-native-btn').style.display =
       navigator.share ? '' : 'none';
 
     notify('SCORE_RECORD_CAPTURED — SELECT_ACTION');
   } catch (e) {
     notify('CAPTURE_FAILED: ' + e.message);
+    console.error(e);
   }
 
   btn.classList.remove('capturing');
@@ -952,7 +974,6 @@ function closeShareModal() {
   document.getElementById('share-modal').classList.remove('on');
 }
 
-// Close modal on backdrop click
 document.getElementById('share-modal').addEventListener('click', function(e) {
   if (e.target === this) closeShareModal();
 });

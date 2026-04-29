@@ -2,31 +2,46 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>나만의 수박 게임</title>
+    <title>「ARCH」 SUIKA GAME</title>
     <style>
+        /* 모던한 블랙 앤 화이트 테마 설정 */
         body {
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #ffe4e1; /* 배경색 */
-            font-family: sans-serif;
+            background-color: #0d0d0d; /* 깊은 블랙 배경 */
+            color: #ffffff; /* 텍스트는 화이트 */
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden; /* 화면 스크롤 방지 */
         }
-        h1 { margin-top: 20px; color: #333; }
-        /* 캔버스 테두리를 둥글게 하고 그림자를 주어 게임기처럼 보이게 합니다 */
+
+        /* 시크한 타이틀 디자인 */
+        h1 { 
+            margin-top: 30px; 
+            margin-bottom: 15px;
+            font-size: 28px;
+            letter-spacing: 5px; /* 글자 간격을 넓혀서 세련된 느낌 추가 */
+            font-weight: 300;
+        }
+        h1 strong {
+            font-weight: 800;
+        }
+
+        /* 게임 캔버스 (흰색 테두리와 미세한 빛 번짐 효과) */
         canvas {
-            border-radius: 10px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            margin-top: 10px;
+            border: 2px solid #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1); /* 은은한 화이트 글로우 */
         }
     </style>
-    <!-- 물리 엔진 라이브러리 -->
+    <!-- Matter.js 물리 엔진 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 </head>
 <body>
 
-    <h1>나만의 수박 게임 만들기 🍉</h1>
+    <h1>「 <strong>ARCH</strong> 」 SUIKA GAME</h1>
 
     <script>
         const Engine = Matter.Engine,
@@ -34,12 +49,12 @@
               Runner = Matter.Runner,
               Bodies = Matter.Bodies,
               Composite = Matter.Composite,
-              Events = Matter.Events; // 충돌 이벤트를 감지하기 위해 추가
+              Events = Matter.Events,
+              Body = Matter.Body; // 속도 조절을 위해 추가
 
         const engine = Engine.create();
         const world = engine.world;
 
-        // 게임 화면 크기
         const CANVAS_WIDTH = 600;
         const CANVAS_HEIGHT = 800;
 
@@ -50,55 +65,49 @@
                 width: CANVAS_WIDTH,
                 height: CANVAS_HEIGHT,
                 wireframes: false, 
-                background: '#fffaec' // 게임판 내부 색상
+                background: '#1a1a1a' // 캔버스 안쪽은 아주 어두운 다크 그레이로 설정 (과일 컬러 강조)
             }
         });
 
-        // 🍎 1. 11단계 과일(이미지) 도감 
-        // 각 단계의 반지름(크기)과 이미지 파일 경로
+        // 🍎 1. 과일 데이터 (이전과 동일)
         const FRUITS = [
-            { radius: 15, name: './A1.png' },   // 0: 1단계
-            { radius: 25, name: './A2.png' },   // 1: 2단계
-            { radius: 35, name: './A3.png' },   // 2: 3단계
-            { radius: 45, name: './A4.png' },   // 3: 4단계
-            { radius: 55, name: './A5.png' },   // 4: 5단계
-            { radius: 65, name: './A6.png' },   // 5: 6단계
-            { radius: 75, name: './A7.png' },   // 6: 7단계
-            { radius: 85, name: './A8.png' },   // 7: 8단계
-            { radius: 100, name: './A9.png' },  // 8: 9단계
-            { radius: 120, name: './A10.png' }, // 9: 10단계
-            { radius: 150, name: './A11.png' }  // 10: 11단계 (수박)
+            { radius: 15, name: './A1.png' },   
+            { radius: 25, name: './A2.png' },   
+            { radius: 35, name: './A3.png' },   
+            { radius: 45, name: './A4.png' },   
+            { radius: 55, name: './A5.png' },   
+            { radius: 65, name: './A6.png' },   
+            { radius: 75, name: './A7.png' },   
+            { radius: 85, name: './A8.png' },   
+            { radius: 100, name: './A9.png' },  
+            { radius: 120, name: './A10.png' }, 
+            { radius: 150, name: './A11.png' }  
         ];
 
-        // 🧱 2. 게임판의 벽과 바닥 만들기
-        const wallOptions = { isStatic: true, render: { fillStyle: '#8B4513' } };
-        // 바닥 (가운데 X, 가운데 Y, 가로, 세로)
+        // 🧱 2. 벽과 바닥 (블랙 앤 화이트에 맞춰 흰색으로 변경)
+        const wallOptions = { 
+            isStatic: true, 
+            render: { fillStyle: '#ffffff' } // 벽 색상을 화이트로 변경
+        };
         const ground = Bodies.rectangle(CANVAS_WIDTH/2, CANVAS_HEIGHT + 10, CANVAS_WIDTH, 40, wallOptions);
-        // 양쪽 벽
         const leftWall = Bodies.rectangle(-10, CANVAS_HEIGHT/2, 40, CANVAS_HEIGHT * 2, wallOptions);
         const rightWall = Bodies.rectangle(CANVAS_WIDTH + 10, CANVAS_HEIGHT/2, 40, CANVAS_HEIGHT * 2, wallOptions);
         
         Composite.add(world, [ground, leftWall, rightWall]);
 
-        // 🍉 3. 과일 생성 함수 만들기
+        // 🍉 3. 과일 생성 (물리 엔진 최적화)
         function createFruit(x, y, index) {
-            // 최대 11단계까지만 생성 가능하도록 제한 (오류 방지)
             if (index >= FRUITS.length) return; 
 
             const data = FRUITS[index];
-            
-            // 💡 이미지 크기 자동 조절 팁
-            // 원본 이미지가 200x200 픽셀이라고 가정하고(적당히 조절하세요), 
-            // 목표 반지름의 2배(지름) 크기로 보이도록 스케일을 대략적으로 계산합니다.
-            // 본인 이미지가 너무 크면 100을 500 등으로 늘려서 비율을 낮추세요.
-            const baseImageSize = 200; 
+            const baseImageSize = 200; // 원본 이미지 사이즈에 맞춰 조절
             const scale = (data.radius * 2) / baseImageSize;
 
             const fruit = Bodies.circle(x, y, data.radius, {
-                restitution: 0.2,     // 튕기는 정도
-                friction: 0.1,        // 마찰력
-                density: 0.001,       // 밀도 (무게감)
-                label: `fruit_${index}`, // 충돌 검사용 라벨표 (매우 중요!)
+                restitution: 0.1,     // 튕김을 줄여서 안정감 있게
+                friction: 0.5,        // 미끄러짐 방지
+                density: 0.001 * (index + 1), // 단계가 클수록 무겁게 설정 (안정적인 쌓임)
+                label: `fruit_${index}`,
                 render: {
                     sprite: {
                         texture: data.name,
@@ -110,52 +119,43 @@
             return fruit;
         }
 
-        // 🖱️ 4. 클릭해서 작은 과일 떨어뜨리기
+        // 🖱️ 4. 클릭 생성
         window.addEventListener('mousedown', (event) => {
-            // 클릭 위치를 감지할 때, 캔버스 안에서만 동작하도록 보정
             const bounds = render.canvas.getBoundingClientRect();
-            // 클릭한 X좌표를 캔버스 기준 X좌표로 변환
             const clickX = event.clientX - bounds.left;
-            
-            // 캔버스 밖을 클릭하면 무시
             if (clickX < 0 || clickX > CANVAS_WIDTH) return;
 
-            // 1~5단계 (인덱스 0~4) 중 무작위 과일 생성
             const randomIndex = Math.floor(Math.random() * 5); 
-            // 생성 위치를 클릭한 곳 근처 상단(y: 50)으로 지정
             const newFruit = createFruit(clickX, 50, randomIndex);
             
-            if (newFruit) {
-                Composite.add(world, newFruit);
-            }
+            if (newFruit) Composite.add(world, newFruit);
         });
 
-        // 💥 5. 핵심! 충돌(합성) 이벤트 로직
+        // 💥 5. 부드러운 충돌(진화) 이벤트 로직
         Events.on(engine, 'collisionStart', (event) => {
             event.pairs.forEach((collision) => {
                 const bodyA = collision.bodyA;
                 const bodyB = collision.bodyB;
 
-                // 두 물체가 모두 '과일'인지 확인
                 if (bodyA.label.startsWith('fruit_') && bodyB.label.startsWith('fruit_')) {
-                    // 과일의 단계 번호(인덱스) 추출 (예: 'fruit_2' -> 2)
                     const indexA = parseInt(bodyA.label.split('_')[1]);
                     const indexB = parseInt(bodyB.label.split('_')[1]);
 
-                    // 두 과일의 단계(크기)가 같다면? 합성!
                     if (indexA === indexB) {
-                        // 1. 부딪힌 두 개의 과일을 화면(월드)에서 제거
                         Composite.remove(world, [bodyA, bodyB]);
 
-                        // 2. 두 과일이 만난 중간 위치 계산
                         const newX = (bodyA.position.x + bodyB.position.x) / 2;
                         const newY = (bodyA.position.y + bodyB.position.y) / 2;
 
-                        // 3. 한 단계 더 큰 과일(indexA + 1)을 그 자리에 생성
+                        // ★ 부드러운 모션의 핵심: 합쳐지기 전 두 과일의 움직이던 속도의 평균을 구합니다.
+                        const velocityX = (bodyA.velocity.x + bodyB.velocity.x) / 2;
+                        const velocityY = (bodyA.velocity.y + bodyB.velocity.y) / 2;
+
                         const nextFruit = createFruit(newX, newY, indexA + 1);
                         
-                        // 최고 단계(수박)를 넘어가지 않게 제한
                         if (nextFruit) {
+                            // 새로 생성된 과일에 속도를 그대로 전달하여 덜컹거림 방지
+                            Body.setVelocity(nextFruit, { x: velocityX, y: velocityY });
                             Composite.add(world, nextFruit);
                         }
                     }
@@ -163,7 +163,7 @@
             });
         });
 
-        // 6. 물리 엔진 및 화면 실행
+        // 6. 실행
         Render.run(render);
         const runner = Runner.create();
         Runner.run(runner, engine);

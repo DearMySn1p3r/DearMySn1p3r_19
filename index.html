@@ -49,20 +49,6 @@
       pointer-events: none; z-index: 9000;
     }
 
-    /* ── BOOT ── */
-    #boot {
-      position: fixed; inset: 0; background: #000;
-      z-index: 20000; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 24px;
-    }
-    .boot-logo {
-      font-size: 22px; font-weight: 900; letter-spacing: 10px;
-      text-shadow: 0 0 25px #fff; animation: glitch .1s infinite;
-    }
-    .boot-sub { font-size: 11px; letter-spacing: 5px; color: rgba(255,255,255,.5); }
-    .boot-bar { width: 320px; height: 1px; background: rgba(255,255,255,.15); overflow: hidden; }
-    .boot-fill { height: 100%; background: #fff; box-shadow: 0 0 18px #fff; width: 0; animation: bootfill 1.9s ease forwards; }
-    @keyframes bootfill { to { width: 100%; } }
     @keyframes glitch {
       0%   { transform: translate(0); }
       20%  { transform: translate(-2px,1px); }
@@ -122,11 +108,18 @@
     .crow {
       display: flex; align-items: center; gap: 8px;
       padding: 4px 6px; border: 1px solid transparent;
-      transition: all .2s; opacity: .3;
+      transition: all .2s;
     }
-    .crow.on  { opacity: 1; border-color: rgba(255,255,255,.15); }
-    .crow.cur { opacity: 1; border-color: rgba(255,255,255,.8); box-shadow: 0 0 8px rgba(255,255,255,.25); background: rgba(255,255,255,.05); }
-    .cimg { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,.2); }
+    .crow.on  { border-color: rgba(255,255,255,.15); }
+    .crow.cur { border-color: rgba(255,255,255,.8); box-shadow: 0 0 8px rgba(255,255,255,.25); background: rgba(255,255,255,.05); }
+    .cimg {
+      width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+      border: 1px solid rgba(255,255,255,.2);
+      transition: filter .3s;
+    }
+    .crow:not(.on) .cimg { filter: brightness(0); }
+    .crow:not(.on) .cname { color: rgba(255,255,255,.2); }
+    .crow:not(.on) .cpts  { color: rgba(255,255,255,.1); }
     .cname { font-size: 8px; letter-spacing: 1px; color: rgba(255,255,255,.7); }
     .cpts  { font-size: 7px; color: rgba(255,255,255,.35); }
 
@@ -195,14 +188,6 @@
 <div id="cursor"></div>
 <div class="scanline"></div>
 <div id="notif"></div>
-
-<!-- ── BOOT ── -->
-<div id="boot">
-  <div class="boot-logo">「ARCH」 SUIKA PROTOCOL</div>
-  <div class="boot-sub">CHARACTER_FUSION_SYSTEM_v1.0</div>
-  <div class="boot-bar"><div class="boot-fill"></div></div>
-  <div class="boot-sub" id="boot-status" style="font-size:9px; margin-top:4px;">LOADING_ASSETS...</div>
-</div>
 
 <!-- ── HEADER ── -->
 <header>
@@ -279,17 +264,17 @@
 
 // ── CONFIG ──
 const UNITS = [
-  { id:1,  img:'A1.png',  r:22,  pts:1,  name:'UNIT-01' },
-  { id:2,  img:'A2.png',  r:30,  pts:3,  name:'UNIT-02' },
-  { id:3,  img:'A3.png',  r:38,  pts:6,  name:'UNIT-03' },
-  { id:4,  img:'A4.png',  r:47,  pts:10, name:'UNIT-04' },
-  { id:5,  img:'A5.png',  r:56,  pts:15, name:'UNIT-05' },
-  { id:6,  img:'A6.png',  r:65,  pts:21, name:'UNIT-06' },
-  { id:7,  img:'A7.png',  r:75,  pts:28, name:'UNIT-07' },
-  { id:8,  img:'A8.png',  r:85,  pts:36, name:'UNIT-08' },
-  { id:9,  img:'A9.png',  r:95,  pts:45, name:'UNIT-09' },
-  { id:10, img:'A10.png', r:107, pts:55, name:'UNIT-10' },
-  { id:11, img:'A11.png', r:120, pts:66, name:'UNIT-11' },
+  { id:1,  img:'A1.png',  r:22,  pts:1,  name:'ASH'      },
+  { id:2,  img:'A2.png',  r:30,  pts:3,  name:'SHANE'    },
+  { id:3,  img:'A3.png',  r:38,  pts:6,  name:'WINTER'   },
+  { id:4,  img:'A4.png',  r:47,  pts:10, name:'RIME'     },
+  { id:5,  img:'A5.png',  r:56,  pts:15, name:'KATO'     },
+  { id:6,  img:'A6.png',  r:65,  pts:21, name:'BLUE'     },
+  { id:7,  img:'A7.png',  r:75,  pts:28, name:'PIKA'     },
+  { id:8,  img:'A8.png',  r:85,  pts:36, name:'OVERLOAD' },
+  { id:9,  img:'A9.png',  r:95,  pts:45, name:'AMORE'    },
+  { id:10, img:'A10.png', r:107, pts:55, name:'SANTA'    },
+  { id:11, img:'A11.png', r:120, pts:66, name:'EDEN'     },
 ];
 
 const CW = 380, CH = 570;
@@ -672,13 +657,15 @@ function updateCharList() {
   const list = document.getElementById('char-list');
   list.innerHTML = '';
   UNITS.forEach(u => {
+    const isOn  = unlocked.has(u.id);
+    const isCur = u.id === curLevel;
     const row = document.createElement('div');
-    row.className = `crow ${unlocked.has(u.id)?'on':''} ${u.id===curLevel?'cur':''}`;
+    row.className = `crow ${isOn?'on':''} ${isCur?'cur':''}`;
     row.innerHTML = `
-      <img class="cimg" src="${u.img}" onerror="this.style.opacity='.2'">
+      <img class="cimg" src="${u.img}" onerror="this.style.opacity='.15'">
       <div>
-        <div class="cname">${u.name}</div>
-        <div class="cpts">+${u.pts} PTS</div>
+        <div class="cname">${isOn ? u.name : '???'}</div>
+        <div class="cpts">${isOn ? '+'+u.pts+' PTS' : '- - -'}</div>
       </div>
     `;
     list.appendChild(row);
@@ -777,19 +764,15 @@ setInterval(() => {
 // ── BOOT ──
 window.onload = () => {
   loadImages(() => {
-    document.getElementById('boot-status').textContent = 'FUSION_SYSTEM_READY';
-    setTimeout(() => {
-      document.getElementById('boot').style.display = 'none';
-      initPhysics();
-      curLevel  = Math.ceil(Math.random() * 3);
-      nextLevel = randLevel();
-      unlocked  = new Set([1,2,3]);
-      updateUI();
-      addLog('ARCH_SUIKA_PROTOCOL_INITIALIZED');
-      addLog('AWAITING_OPERATOR_INPUT...');
-      notify('ARCH SUIKA PROTOCOL — SYSTEM ONLINE');
-      requestAnimationFrame(loop);
-    }, 2100);
+    initPhysics();
+    curLevel  = Math.ceil(Math.random() * 3);
+    nextLevel = randLevel();
+    unlocked  = new Set([1, 2, 3]);
+    updateUI();
+    addLog('ARCH_SUIKA_PROTOCOL_INITIALIZED');
+    addLog('AWAITING_OPERATOR_INPUT...');
+    notify('ARCH SUIKA PROTOCOL — SYSTEM ONLINE');
+    requestAnimationFrame(loop);
   });
 };
 </script>

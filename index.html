@@ -873,6 +873,45 @@ async function captureScreen() {
     // ① 게임 화면 그대로 복사
     oc.drawImage(gameCanvas, 0, 0);
 
+    // ② 필드가 비어있을 때 중앙 장식 오버레이
+    if (fruits.length === 0) {
+      const cx = GW / 2, cy = GH / 2;
+      const grad = oc.createRadialGradient(cx, cy, 10, cx, cy, 160);
+      grad.addColorStop(0, 'rgba(255,255,255,0.07)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      oc.fillStyle = grad;
+      oc.beginPath(); oc.arc(cx, cy, 160, 0, Math.PI*2); oc.fill();
+
+      oc.strokeStyle = 'rgba(255,255,255,0.12)';
+      oc.lineWidth = 1;
+      oc.beginPath(); oc.arc(cx, cy, 90, 0, Math.PI*2); oc.stroke();
+      oc.strokeStyle = 'rgba(255,255,255,0.06)';
+      oc.beginPath(); oc.arc(cx, cy, 130, 0, Math.PI*2); oc.stroke();
+
+      oc.strokeStyle = 'rgba(255,255,255,0.1)';
+      oc.lineWidth = 1;
+      oc.setLineDash([4, 6]);
+      oc.beginPath(); oc.moveTo(cx-110, cy); oc.lineTo(cx+110, cy); oc.stroke();
+      oc.beginPath(); oc.moveTo(cx, cy-110); oc.lineTo(cx, cy+110); oc.stroke();
+      oc.setLineDash([]);
+
+      oc.fillStyle = 'rgba(255,255,255,0.55)';
+      oc.font = '900 18px Orbitron, monospace';
+      oc.textAlign = 'center';
+      oc.shadowColor = '#fff';
+      oc.shadowBlur = 14;
+      oc.fillText('「ARCH」', cx, cy - 14);
+      oc.shadowBlur = 0;
+
+      oc.fillStyle = 'rgba(255,255,255,0.25)';
+      oc.font = '700 9px Orbitron, monospace';
+      oc.fillText('SUIKA  PROTOCOL', cx, cy + 10);
+
+      oc.fillStyle = 'rgba(255,255,255,0.15)';
+      oc.font = '400 8px Orbitron, monospace';
+      oc.fillText('AWAITING  UNIT  DROP', cx, cy + 32);
+    }
+
     // ② 상단 타이틀 바 (반투명)
     oc.fillStyle = 'rgba(0,0,0,0.75)';
     oc.fillRect(0, 0, GW, 38);

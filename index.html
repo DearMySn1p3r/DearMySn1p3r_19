@@ -2,9 +2,11 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>「ARCH」 SUIKA PROTOCOL</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+KR:wght@300;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -12,10 +14,11 @@
       --accent: #ffffff;
       --dim: rgba(255,255,255,0.4);
       --dimmer: rgba(255,255,255,0.1);
-      --font: 'Orbitron', 'Noto Sans KR', sans-serif;
+      /* 시스템 기본 폰트 폴백 추가 */
+      --font: 'Orbitron', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; cursor: none !important; }
-    ::-webkit-scrollbar { width: 2px; }
+    ::-webkit-scrollbar { width: 2px; height: 2px; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); }
 
     body {
@@ -41,6 +44,12 @@
     #cursor::before { top: 50%; left: -5px; right: -5px; height: 1px; }
     #cursor::after  { left: 50%; top: -5px; bottom: -5px; width: 1px; }
     #cursor.click { width: 14px !important; height: 14px !important; box-shadow: 0 0 25px #fff !important; }
+
+    /* 모바일(터치 기기)에서는 커스텀 커서 숨김 및 기본 커서 허용 */
+    @media (pointer: coarse) {
+      #cursor { display: none !important; }
+      * { cursor: auto !important; }
+    }
 
     /* ── SCANLINE ── */
     .scanline {
@@ -75,7 +84,7 @@
     /* ── LAYOUT ── */
     #app {
       margin-top: 58px; height: calc(100vh - 58px);
-      display: flex; align-items: center; justify-content: center;
+      display: flex; align-items: stretch; justify-content: center;
       gap: 12px; padding: 14px 10px;
     }
 
@@ -100,7 +109,7 @@
     #next-canvas { border-radius: 50%; border: 1px solid rgba(255,255,255,.3); box-shadow: 0 0 14px rgba(255,255,255,.12); }
 
     /* How to play */
-    .howto { font-size: 10px; line-height: 2; color: rgba(255,255,255,.55); font-family: 'Noto Sans KR', sans-serif; }
+    .howto { font-size: 10px; line-height: 2; color: rgba(255,255,255,.55); }
     .howto b { color: #fff; font-family: var(--font); font-size: 9px; }
 
     /* Char list */
@@ -124,9 +133,21 @@
     .cpts  { font-size: 7px; color: rgba(255,255,255,.35); }
 
     /* ── GAME CANVAS ── */
-    #game-wrap { position: relative; flex-shrink: 0; }
+    #game-wrap { 
+      position: relative; 
+      flex-shrink: 0; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+    }
     #gc {
       display: block;
+      width: 100%;
+      max-width: 380px;
+      height: auto;
+      aspect-ratio: 380 / 570;
+      object-fit: contain;
+      touch-action: none; /* 드래그 시 모바일 스크롤 방지 */
       border: 1px solid rgba(255,255,255,.45);
       box-shadow: 0 0 35px rgba(255,255,255,.07), inset 0 0 50px rgba(0,0,0,.6);
     }
@@ -141,9 +162,9 @@
       backdrop-filter: blur(4px);
     }
     #go-overlay.on { display: flex; }
-    .go-title { font-size: 22px; font-weight: 900; letter-spacing: 6px; text-shadow: 0 0 25px #fff; animation: glitch .15s infinite; }
-    .go-sub   { font-size: 9px;  letter-spacing: 4px; color: rgba(255,255,255,.5); }
-    .go-score { font-size: 12px; letter-spacing: 3px; color: rgba(255,255,255,.6); }
+    .go-title { font-size: 22px; font-weight: 900; letter-spacing: 6px; text-shadow: 0 0 25px #fff; animation: glitch .15s infinite; text-align: center; }
+    .go-sub   { font-size: 9px;  letter-spacing: 4px; color: rgba(255,255,255,.5); text-align: center; }
+    .go-score { font-size: 12px; letter-spacing: 3px; color: rgba(255,255,255,.6); text-align: center; }
     .go-score span { color: #fff; font-size: 22px; font-weight: 900; display: block; margin-top: 4px; text-shadow: 0 0 15px #fff; }
     .btn-r {
       padding: 11px 32px; background: transparent;
@@ -181,10 +202,11 @@
       0%   { transform: translateY(0); opacity: 1; }
       100% { transform: translateY(-50px); opacity: 0; }
     }
+    
     /* ── CAPTURE BUTTON ── */
     #capture-btn {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 20px; background: transparent;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 14px 20px; background: transparent;
       border: 1px solid rgba(255,255,255,.5); color: rgba(255,255,255,.7);
       font-family: var(--font); font-size: 9px; letter-spacing: 3px; font-weight: 700;
       transition: .25s; position: relative; overflow: hidden;
@@ -200,7 +222,7 @@
     #capture-btn.capturing { pointer-events: none; opacity: .5; }
     .cam-icon { font-size: 13px; line-height: 1; }
 
-    /* Flash overlay for capture feel */
+    /* Flash overlay */
     #flash {
       position: fixed; inset: 0; background: #fff;
       opacity: 0; pointer-events: none; z-index: 99999;
@@ -227,8 +249,8 @@
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
       background: linear-gradient(90deg, transparent, #fff, transparent);
     }
-    .share-label { font-size: 9px; letter-spacing: 4px; color: rgba(255,255,255,.5); }
-    .share-title { font-size: 16px; font-weight: 900; letter-spacing: 4px; text-shadow: 0 0 15px rgba(255,255,255,.6); }
+    .share-label { font-size: 9px; letter-spacing: 4px; color: rgba(255,255,255,.5); text-align: center; }
+    .share-title { font-size: 16px; font-weight: 900; letter-spacing: 4px; text-shadow: 0 0 15px rgba(255,255,255,.6); text-align: center; }
     #share-preview {
       width: 100%; border: 1px solid rgba(255,255,255,.2);
       box-shadow: 0 0 20px rgba(255,255,255,.06);
@@ -249,6 +271,44 @@
       transition: color .2s; padding: 4px 12px;
     }
     .share-close:hover { color: #fff; }
+
+    /* ── MOBILE RESPONSIVE LAYOUT ── */
+    @media (max-width: 900px) {
+      body { overflow-y: auto; overflow-x: hidden; }
+      header { padding: 0 15px; }
+      .hdr-title { font-size: 15px; }
+      .hdr-sub { display: none; }
+      
+      #app {
+        flex-direction: column;
+        height: auto;
+        padding-bottom: 40px;
+        gap: 15px;
+      }
+
+      .side { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: visible; }
+      
+      #side-left { order: 1; grid-template-columns: 1fr 1fr 1fr; }
+      #game-wrap { order: 2; width: 100%; margin: 0 auto; }
+      #side-right { order: 3; display: flex; flex-direction: column; }
+
+      .box-score { grid-column: 1; }
+      .box-best { grid-column: 2; }
+      .box-next { grid-column: 3; display: flex; flex-direction: column; align-items: center; padding: 8px; }
+      #next-wrap { padding: 2px 0; }
+      #next-canvas { width: 44px; height: 44px; }
+
+      .box-capture { grid-column: 1 / -1; }
+      .box-howto { grid-column: 1 / -1; }
+
+      .box-val { font-size: 20px; }
+      .box-val.sm { font-size: 16px; }
+
+      #char-list { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+      .crow { flex: 1 1 30%; min-width: 90px; }
+      
+      #sys-log { max-height: 150px; }
+    }
   </style>
 </head>
 <body>
@@ -258,7 +318,6 @@
 <div id="notif"></div>
 <div id="flash"></div>
 
-<!-- ── SHARE MODAL ── -->
 <div id="share-modal">
   <div class="share-box">
     <div class="share-label">SCORE_RECORD_CAPTURED</div>
@@ -272,53 +331,47 @@
   </div>
 </div>
 
-<!-- ── HEADER ── -->
 <header>
   <div class="hdr-left">
     <div class="hdr-title">「ARCH」</div>
     <div class="hdr-sub">| SUIKA_PROTOCOL</div>
   </div>
   <div class="hdr-right">
-    SYSTEM: <span>ONLINE</span> // MODE: <span>FUSION</span><br>
+    SYSTEM: <span>ONLINE</span><br>
     <span id="clock">00:00:00</span> KST
   </div>
 </header>
 
-<!-- ── APP ── -->
 <div id="app">
 
-  <!-- LEFT -->
-  <div class="side">
-    <div class="box">
+  <div class="side" id="side-left">
+    <div class="box box-score">
       <div class="box-label">SCORE</div>
       <div class="box-val" id="score-disp">0</div>
     </div>
-    <div class="box">
+    <div class="box box-best">
       <div class="box-label">BEST</div>
       <div class="box-val sm" id="best-disp">0</div>
     </div>
-    <button id="capture-btn" onclick="captureScreen()">
-      <span class="cam-icon">⊡</span> CAPTURE_SCORE
-    </button>
-    <div class="box">
-      <div class="box-label">NEXT UNIT</div>
+    <div class="box box-next">
+      <div class="box-label">NEXT</div>
       <div id="next-wrap">
         <canvas id="next-canvas" width="72" height="72"></canvas>
       </div>
     </div>
-    <div class="box">
+    <button id="capture-btn" class="box-capture" onclick="captureScreen()">
+      <span class="cam-icon">⊡</span> CAPTURE_SCORE
+    </button>
+    <div class="box box-howto">
       <div class="box-label">HOW TO PLAY</div>
       <div class="howto">
-        <b>CLICK</b> — 유닛 투하<br>
-        <b>MOVE</b> — 위치 조준<br>
+        <b>CLICK / TOUCH</b> — 유닛 투하 & 위치 조준<br>
         <b>SAME × 2</b> — 상위 유닛 합성<br>
-        <b>OVERFLOW</b> — 게임 종료<br><br>
-        <span style="color:rgba(255,255,255,.35)">경계선을 넘으면<br>카운트 시작</span>
+        <b>OVERFLOW</b> — 상단 경계를 넘을 시 종료
       </div>
     </div>
   </div>
 
-  <!-- CENTER -->
   <div id="game-wrap">
     <canvas id="gc"></canvas>
     <div id="go-overlay">
@@ -329,15 +382,14 @@
     </div>
   </div>
 
-  <!-- RIGHT -->
-  <div class="side">
-    <div class="box" style="flex:1; overflow-y:auto;">
+  <div class="side" id="side-right">
+    <div class="box box-db" style="flex:1; overflow-y:auto;">
       <div class="box-label">UNIT DATABASE</div>
       <div id="char-list"></div>
     </div>
-    <div class="box">
+    <div class="box box-log">
       <div class="box-label">SYSTEM LOG</div>
-      <div id="sys-log" style="font-size:9px; color:rgba(255,255,255,.4); font-family:monospace; line-height:1.9; max-height:120px; overflow-y:auto;"></div>
+      <div id="sys-log" style="font-size:9px; color:rgba(255,255,255,.4); font-family:monospace; line-height:1.9; max-height:120px; overflow-y:auto; word-break: break-all;"></div>
     </div>
   </div>
 
@@ -364,9 +416,9 @@ const UNITS = [
 ];
 
 const CW = 380, CH = 570;
-const DANGER_Y = 62;   // units above this line = danger
-const DROP_Y   = 42;   // drop spawn y
-const GO_DELAY = 2000; // ms before game over triggers
+const DANGER_Y = 62;   
+const DROP_Y   = 42;   
+const GO_DELAY = 2000; 
 
 // ── IMAGE LOADER ──
 const imgs = {};
@@ -386,10 +438,10 @@ const { Engine, Bodies, Body, World, Events, Runner } = Matter;
 
 // ── STATE ──
 let engine, world, runner;
-let fruits = [];            // active fruit bodies
-let mergeQueue = [];        // queued merges
-let pendingIds = new Set(); // body IDs queued for merge
-let particles = [];         // visual effects
+let fruits = [];
+let mergeQueue = [];
+let pendingIds = new Set();
+let particles = [];
 let scorePopEls = [];
 
 let score = 0;
@@ -400,13 +452,17 @@ let dropX = CW / 2;
 let gameOver = false;
 let dangerTimer = 0;
 let unlocked = new Set([1, 2, 3]);
-let lastGlowTime = 0;
-let frameCount = 0;
 
 // ── CANVAS ──
 const canvas = document.getElementById('gc');
 canvas.width = CW; canvas.height = CH;
 const ctx = canvas.getContext('2d');
+
+// ── 터치/마우스 좌표 보정 ──
+function getScale() {
+  const rect = canvas.getBoundingClientRect();
+  return canvas.width / rect.width;
+}
 
 // ── PHYSICS INIT ──
 function initPhysics() {
@@ -415,16 +471,12 @@ function initPhysics() {
 
   const wallOpts = { isStatic: true, label: 'wall', friction: 0.4, restitution: 0.15, slop: 0.05 };
   const T = 40;
-  // floor
-  World.add(world, Bodies.rectangle(CW/2, CH + T/2, CW + T*2, T, wallOpts));
-  // left wall
-  World.add(world, Bodies.rectangle(-T/2, CH/2, T, CH*2, wallOpts));
-  // right wall
-  World.add(world, Bodies.rectangle(CW + T/2, CH/2, T, CH*2, wallOpts));
+  World.add(world, Bodies.rectangle(CW/2, CH + T/2, CW + T*2, T, wallOpts)); 
+  World.add(world, Bodies.rectangle(-T/2, CH/2, T, CH*2, wallOpts)); 
+  World.add(world, Bodies.rectangle(CW + T/2, CH/2, T, CH*2, wallOpts)); 
 
   runner = Runner.create();
   Runner.run(runner, engine);
-
   Events.on(engine, 'collisionStart', onCollision);
 }
 
@@ -443,23 +495,18 @@ function onCollision(evt) {
   }
 }
 
-// ── FRUIT FACTORY ──
+// ── FACTORY & LOGIC ──
 function makeFruit(x, y, level) {
   const r = UNITS[level - 1].r;
   const b = Bodies.circle(x, y, r, {
-    label: 'fruit',
-    restitution: 0.25,
-    friction: 0.5,
-    frictionAir: 0.008,
-    density: 0.002,
-    slop: 0.05,
+    label: 'fruit', restitution: 0.25, friction: 0.5,
+    frictionAir: 0.008, density: 0.002, slop: 0.05,
   });
   b.gameLevel = level;
   b.spawnTime = Date.now();
   return b;
 }
 
-// ── DROP ──
 function dropUnit(x) {
   if (!canDrop || gameOver) return;
   canDrop = false;
@@ -484,7 +531,6 @@ function randLevel() {
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
-// ── MERGE PROCESSOR ──
 function processMerges() {
   if (!mergeQueue.length) return;
   const queue = mergeQueue.splice(0);
@@ -506,14 +552,10 @@ function processMerges() {
     score += pts;
     unlocked.add(newLvl);
 
-    // Particle ring
     particles.push({ x: mx, y: my, r: UNITS[newLvl-1].r * 1.2, alpha: 0.9, dr: 5 });
     particles.push({ x: mx, y: my, r: UNITS[newLvl-1].r * 0.5, alpha: 0.6, dr: 3 });
-
-    // Score pop
     spawnScorePop(mx, my, `+${pts}`);
 
-    // New body
     if (newLvl <= 11) {
       const ny = clamp(my, UNITS[newLvl-1].r + DANGER_Y, CH - UNITS[newLvl-1].r - 5);
       const nb = makeFruit(mx, ny, newLvl);
@@ -523,23 +565,25 @@ function processMerges() {
     }
 
     updateUI();
-    notify(`FUSION: ${UNITS[lvl-1].name} ×2 → ${UNITS[newLvl-1].name} [+${pts} PTS]`);
-    addLog(`MERGE: LV${lvl}+LV${lvl} → LV${newLvl} score+${pts}`);
+    notify(`FUSION: ${UNITS[lvl-1].name} ×2 → ${UNITS[newLvl-1].name}`);
+    addLog(`MERGE: LV${lvl}+LV${lvl} → LV${newLvl}`);
   }
 }
 
-// ── SCORE POP ──
 function spawnScorePop(x, y, text) {
   const el = document.createElement('div');
   el.className = 'score-pop';
   el.textContent = text;
-  el.style.left = (x + canvas.offsetLeft) + 'px';
-  el.style.top  = (y + canvas.offsetTop - 10) + 'px';
-  document.getElementById('game-wrap').appendChild(el);
+  
+  const rect = canvas.getBoundingClientRect();
+  const scale = rect.width / canvas.width;
+  
+  el.style.left = (rect.left + x * scale) + 'px';
+  el.style.top  = (rect.top + y * scale - 10) + 'px';
+  document.body.appendChild(el);
   setTimeout(() => el.remove(), 850);
 }
 
-// ── GAME OVER ──
 function triggerGameOver() {
   if (gameOver) return;
   gameOver = true;
@@ -550,11 +594,10 @@ function triggerGameOver() {
   }
   document.getElementById('final-score').textContent = score.toLocaleString();
   document.getElementById('go-overlay').classList.add('on');
-  notify('UNIT_OVERFLOW_DETECTED — PROTOCOL_TERMINATED');
-  addLog('!!! GAME_OVER: OVERFLOW DETECTED');
+  notify('UNIT_OVERFLOW_DETECTED');
+  addLog('!!! OVERFLOW TERMINATED');
 }
 
-// ── RESTART ──
 function restartGame() {
   document.getElementById('go-overlay').classList.remove('on');
   gameOver = false; canDrop = true; dangerTimer = 0;
@@ -568,210 +611,144 @@ function restartGame() {
   curLevel  = Math.ceil(Math.random() * 3);
   nextLevel = randLevel();
   updateUI();
-  notify('REINITIALIZING FUSION PROTOCOL...');
+  notify('REINITIALIZING PROTOCOL...');
   addLog('--- RESTART ---');
 }
 
 // ── RENDER ──
 function draw() {
   ctx.clearRect(0, 0, CW, CH);
-
-  // BG
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, CW, CH);
 
-  // Subtle grid
   ctx.strokeStyle = 'rgba(255,255,255,.025)';
   ctx.lineWidth = 1;
-  for (let x = 0; x <= CW; x += 38) {
-    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CH); ctx.stroke();
-  }
-  for (let y = 0; y <= CH; y += 38) {
-    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke();
-  }
+  for (let x = 0; x <= CW; x += 38) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CH); ctx.stroke(); }
+  for (let y = 0; y <= CH; y += 38) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
 
-  // Danger zone indicator
   const dangerAlpha = 0.12 + 0.08 * Math.sin(Date.now() / 300);
   ctx.fillStyle = `rgba(255,255,255,${dangerAlpha * (dangerTimer > 0 ? 2.5 : 1)})`;
   ctx.fillRect(0, 0, CW, DANGER_Y);
 
-  // Danger line
   ctx.setLineDash([6,5]);
-  ctx.strokeStyle = dangerTimer > 0
-    ? `rgba(255,255,255,${0.6 + 0.4*Math.sin(Date.now()/150)})`
-    : 'rgba(255,255,255,.28)';
+  ctx.strokeStyle = dangerTimer > 0 ? `rgba(255,255,255,${0.6 + 0.4*Math.sin(Date.now()/150)})` : 'rgba(255,255,255,.28)';
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(0,DANGER_Y); ctx.lineTo(CW,DANGER_Y); ctx.stroke();
   ctx.setLineDash([]);
 
-  // DANGER label
   if (dangerTimer > 0) {
-    ctx.font = '700 9px Orbitron';
+    ctx.font = '700 9px Orbitron, sans-serif';
     ctx.fillStyle = `rgba(255,255,255,${0.5+0.5*Math.sin(Date.now()/120)})`;
     ctx.textAlign = 'right';
     ctx.fillText('!! OVERFLOW_IMMINENT', CW - 8, DANGER_Y - 5);
     ctx.textAlign = 'left';
   }
 
-  // Drop preview (ghost)
   if (canDrop && !gameOver) {
     const r = UNITS[curLevel-1].r;
     const gx = clamp(dropX, r+2, CW-r-2);
-    // guide line
     ctx.strokeStyle = 'rgba(255,255,255,.1)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4,4]);
+    ctx.lineWidth = 1; ctx.setLineDash([4,4]);
     ctx.beginPath(); ctx.moveTo(gx,DROP_Y+r); ctx.lineTo(gx,CH); ctx.stroke();
     ctx.setLineDash([]);
-    // ghost unit
     drawUnit(gx, DROP_Y, r, curLevel, .55);
   }
 
-  // Particles
   particles = particles.filter(p => {
     p.alpha -= .045; p.r += p.dr * .5;
     if (p.alpha <= 0) return false;
-    ctx.save();
-    ctx.globalAlpha = p.alpha;
+    ctx.save(); ctx.globalAlpha = p.alpha;
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
     ctx.shadowColor = '#fff'; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.stroke();
-    ctx.restore();
-    return true;
+    ctx.restore(); return true;
   });
 
-  // Fruits
   for (const b of fruits) {
-    ctx.save();
-    ctx.translate(b.position.x, b.position.y);
-    ctx.rotate(b.angle);
-    const r = UNITS[b.gameLevel-1].r;
-    drawUnit(0, 0, r, b.gameLevel, 1);
+    ctx.save(); ctx.translate(b.position.x, b.position.y); ctx.rotate(b.angle);
+    drawUnit(0, 0, UNITS[b.gameLevel-1].r, b.gameLevel, 1);
     ctx.restore();
   }
 }
 
 function drawUnit(x, y, r, level, alpha) {
   const img = imgs[level];
-  ctx.save();
-  ctx.globalAlpha = alpha;
-
-  // Clip circle
-  ctx.beginPath();
-  ctx.arc(x, y, r, 0, Math.PI*2);
-  ctx.clip();
+  ctx.save(); ctx.globalAlpha = alpha;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.clip();
 
   if (img && img.complete && img.naturalWidth > 0) {
     ctx.drawImage(img, x-r, y-r, r*2, r*2);
   } else {
-    ctx.fillStyle = '#111';
-    ctx.fill();
+    ctx.fillStyle = '#111'; ctx.fill();
     ctx.fillStyle = '#fff';
-    ctx.font = `900 ${r*.55}px Orbitron`;
+    ctx.font = `900 ${r*.55}px Orbitron, sans-serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(level, x, y);
   }
-
-  ctx.restore();
-  ctx.save();
-  ctx.globalAlpha = alpha;
-
-  // Border
-  ctx.strokeStyle = 'rgba(255,255,255,.65)';
-  ctx.lineWidth = 1.5;
+  ctx.restore(); ctx.save(); ctx.globalAlpha = alpha;
+  ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.stroke();
-
-  // Glow rim
-  ctx.strokeStyle = 'rgba(255,255,255,.12)';
-  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.arc(x, y, r+1, 0, Math.PI*2); ctx.stroke();
-
   ctx.restore();
 }
 
-// ── NEXT PREVIEW ──
 function drawNextPreview() {
   const nc = document.getElementById('next-canvas');
   const nx = nc.getContext('2d');
   nx.clearRect(0,0,72,72);
-  nx.fillStyle = '#000';
-  nx.fillRect(0,0,72,72);
+  nx.fillStyle = '#000'; nx.fillRect(0,0,72,72);
 
   const r = UNITS[nextLevel-1].r;
   const scale = Math.min(30/r, 1);
-  nx.save();
-  nx.translate(36, 36);
-  nx.scale(scale, scale);
-  drawUnitOnCtx(nx, 0, 0, r, nextLevel, 1);
-  nx.restore();
-
-  // border
-  nx.strokeStyle = 'rgba(255,255,255,.3)';
-  nx.lineWidth = 1;
-  nx.beginPath(); nx.arc(36,36,35,0,Math.PI*2); nx.stroke();
-}
-
-function drawUnitOnCtx(c, x, y, r, level, alpha) {
-  const img = imgs[level];
-  c.save(); c.globalAlpha = alpha;
-  c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.clip();
+  nx.save(); nx.translate(36, 36); nx.scale(scale, scale);
+  
+  const img = imgs[nextLevel];
+  nx.beginPath(); nx.arc(0,0,r,0,Math.PI*2); nx.clip();
   if (img && img.complete && img.naturalWidth > 0) {
-    c.drawImage(img, x-r, y-r, r*2, r*2);
+    nx.drawImage(img, -r, -r, r*2, r*2);
   } else {
-    c.fillStyle = '#111'; c.fill();
-    c.fillStyle = '#fff';
-    c.font = `900 ${r*.55}px Orbitron`;
-    c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillText(level, x, y);
+    nx.fillStyle = '#111'; nx.fill(); nx.fillStyle = '#fff';
+    nx.font = `900 ${r*.55}px Orbitron, sans-serif`;
+    nx.textAlign = 'center'; nx.textBaseline = 'middle';
+    nx.fillText(nextLevel, 0, 0);
   }
-  c.restore();
-  c.save(); c.globalAlpha = alpha;
-  c.strokeStyle = 'rgba(255,255,255,.6)'; c.lineWidth = 1.5;
-  c.beginPath(); c.arc(x,y,r,0,Math.PI*2); c.stroke();
-  c.restore();
+  nx.restore();
+  nx.strokeStyle = 'rgba(255,255,255,.3)'; nx.lineWidth = 1;
+  nx.beginPath(); nx.arc(36,36,35,0,Math.PI*2); nx.stroke();
 }
 
 // ── UI UPDATE ──
 function updateUI() {
   document.getElementById('score-disp').textContent = score.toLocaleString();
   document.getElementById('best-disp').textContent  = bestScore.toLocaleString();
-  drawNextPreview();
-  updateCharList();
+  drawNextPreview(); updateCharList();
 }
 
 function updateCharList() {
   const list = document.getElementById('char-list');
   list.innerHTML = '';
   UNITS.forEach(u => {
-    const isOn  = unlocked.has(u.id);
-    const isCur = u.id === curLevel;
+    const isOn = unlocked.has(u.id); const isCur = u.id === curLevel;
     const row = document.createElement('div');
     row.className = `crow ${isOn?'on':''} ${isCur?'cur':''}`;
-    row.innerHTML = `
-      <img class="cimg" src="${u.img}" onerror="this.style.opacity='.15'">
-      <div>
-        <div class="cname">${isOn ? u.name : '???'}</div>
-        <div class="cpts">${isOn ? '+'+u.pts+' PTS' : '- - -'}</div>
-      </div>
-    `;
+    row.innerHTML = `<img class="cimg" src="${u.img}" onerror="this.style.opacity='.15'">
+      <div><div class="cname">${isOn ? u.name : '???'}</div>
+      <div class="cpts">${isOn ? '+'+u.pts+' PTS' : '- - -'}</div></div>`;
     list.appendChild(row);
   });
 }
 
-// ── NOTIFY ──
 let notifTimer;
 function notify(msg) {
   const el = document.getElementById('notif');
   el.textContent = `>> ${msg}`;
-  el.style.display = 'block';
-  el.style.animation = 'none';
-  void el.offsetWidth;
+  el.style.display = 'block'; el.style.animation = 'none'; void el.offsetWidth;
   el.style.animation = 'notifIn .3s forwards';
   clearTimeout(notifTimer);
   notifTimer = setTimeout(() => { el.style.display='none'; }, 3200);
 }
 
-// ── SYSLOG ──
 let logLines = [];
 function addLog(msg) {
   logLines.push(msg);
@@ -781,215 +758,110 @@ function addLog(msg) {
   el.scrollTop = el.scrollHeight;
 }
 
-// ── GAME LOOP ──
+// ── LOOP ──
 let lastTS = 0;
 function loop(ts) {
   const dt = ts - lastTS; lastTS = ts;
   if (!gameOver) {
     processMerges();
-
-    // Check danger
-    let inDanger = false;
-    const now = Date.now();
+    let inDanger = false; const now = Date.now();
     for (const b of fruits) {
-      const age = now - b.spawnTime;
-      const r = UNITS[b.gameLevel-1].r;
-      const settled = Math.abs(b.velocity.y) < 1.2 && Math.abs(b.velocity.x) < 1.2;
-      if (age > 1000 && settled && (b.position.y - r) < DANGER_Y) {
+      if (now - b.spawnTime > 1000 && Math.abs(b.velocity.y) < 1.2 && Math.abs(b.velocity.x) < 1.2 && (b.position.y - UNITS[b.gameLevel-1].r) < DANGER_Y) {
         inDanger = true; break;
       }
     }
-    if (inDanger) {
-      dangerTimer += dt;
-      if (dangerTimer >= GO_DELAY) triggerGameOver();
-    } else {
-      dangerTimer = 0;
-    }
+    if (inDanger) { dangerTimer += dt; if (dangerTimer >= GO_DELAY) triggerGameOver(); }
+    else dangerTimer = 0;
   }
-  draw();
-  requestAnimationFrame(loop);
+  draw(); requestAnimationFrame(loop);
 }
 
-// ── INPUT ──
+// ── INPUT (Mouse & Touch Scaled) ──
 const cursorEl = document.getElementById('cursor');
 document.addEventListener('mousemove', e => {
-  cursorEl.style.left = e.clientX + 'px';
-  cursorEl.style.top  = e.clientY + 'px';
+  cursorEl.style.left = e.clientX + 'px'; cursorEl.style.top  = e.clientY + 'px';
 });
 document.addEventListener('mousedown', () => cursorEl.classList.add('click'));
 document.addEventListener('mouseup',   () => cursorEl.classList.remove('click'));
 
 canvas.addEventListener('mousemove', e => {
   const r = canvas.getBoundingClientRect();
-  dropX = e.clientX - r.left;
+  dropX = (e.clientX - r.left) * getScale();
 });
-
 canvas.addEventListener('click', e => {
   const r = canvas.getBoundingClientRect();
-  dropUnit(e.clientX - r.left);
+  dropUnit((e.clientX - r.left) * getScale());
 });
 
-// Touch support
 canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
+  e.preventDefault(); 
   const r = canvas.getBoundingClientRect();
-  dropX = e.touches[0].clientX - r.left;
+  dropX = (e.touches[0].clientX - r.left) * getScale();
 }, { passive: false });
 
 canvas.addEventListener('touchend', e => {
   const r = canvas.getBoundingClientRect();
-  dropUnit(e.changedTouches[0].clientX - r.left);
+  dropUnit((e.changedTouches[0].clientX - r.left) * getScale());
 });
-
 
 // ── CAPTURE & SHARE ──
 let capturedDataURL = null;
-
 async function captureScreen() {
   const btn = document.getElementById('capture-btn');
-  btn.classList.add('capturing');
-  btn.innerHTML = '...';
-
-  // Flash effect
+  btn.classList.add('capturing'); btn.innerHTML = '...';
   const flash = document.getElementById('flash');
-  flash.classList.add('on');
-  setTimeout(() => flash.classList.remove('on'), 120);
+  flash.classList.add('on'); setTimeout(() => flash.classList.remove('on'), 120);
 
   try {
-    // ── 게임 캔버스를 직접 합성 ──
     const gameCanvas = document.getElementById('gc');
-    const GW = gameCanvas.width;
-    const GH = gameCanvas.height;
-
-    // 배너 높이
-    const BANNER = 80;
-    const PAD = 24;
-
+    const GW = gameCanvas.width, GH = gameCanvas.height, BANNER = 80, PAD = 24;
     const out = document.createElement('canvas');
-    out.width  = GW;
-    out.height = GH + BANNER;
+    out.width = GW; out.height = GH + BANNER;
     const oc = out.getContext('2d');
 
-    // ① 게임 화면 그대로 복사
     oc.drawImage(gameCanvas, 0, 0);
 
-    // ② 필드가 비어있을 때 중앙 장식 오버레이
     if (fruits.length === 0) {
-      const cx = GW / 2, cy = GH / 2;
-      const grad = oc.createRadialGradient(cx, cy, 10, cx, cy, 160);
-      grad.addColorStop(0, 'rgba(255,255,255,0.07)');
-      grad.addColorStop(1, 'rgba(255,255,255,0)');
-      oc.fillStyle = grad;
-      oc.beginPath(); oc.arc(cx, cy, 160, 0, Math.PI*2); oc.fill();
-
-      oc.strokeStyle = 'rgba(255,255,255,0.12)';
-      oc.lineWidth = 1;
-      oc.beginPath(); oc.arc(cx, cy, 90, 0, Math.PI*2); oc.stroke();
-      oc.strokeStyle = 'rgba(255,255,255,0.06)';
-      oc.beginPath(); oc.arc(cx, cy, 130, 0, Math.PI*2); oc.stroke();
-
-      oc.strokeStyle = 'rgba(255,255,255,0.1)';
-      oc.lineWidth = 1;
-      oc.setLineDash([4, 6]);
-      oc.beginPath(); oc.moveTo(cx-110, cy); oc.lineTo(cx+110, cy); oc.stroke();
-      oc.beginPath(); oc.moveTo(cx, cy-110); oc.lineTo(cx, cy+110); oc.stroke();
-      oc.setLineDash([]);
-
-      oc.fillStyle = 'rgba(255,255,255,0.55)';
-      oc.font = '900 18px Orbitron, monospace';
-      oc.textAlign = 'center';
-      oc.shadowColor = '#fff';
-      oc.shadowBlur = 14;
-      oc.fillText('「ARCH」', cx, cy - 14);
-      oc.shadowBlur = 0;
-
-      oc.fillStyle = 'rgba(255,255,255,0.25)';
-      oc.font = '700 9px Orbitron, monospace';
-      oc.fillText('SUIKA  PROTOCOL', cx, cy + 10);
-
-      oc.fillStyle = 'rgba(255,255,255,0.15)';
-      oc.font = '400 8px Orbitron, monospace';
-      oc.fillText('AWAITING  UNIT  DROP', cx, cy + 32);
+      const cx = GW/2, cy = GH/2;
+      const grad = oc.createRadialGradient(cx,cy,10,cx,cy,160);
+      grad.addColorStop(0, 'rgba(255,255,255,0.07)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+      oc.fillStyle = grad; oc.beginPath(); oc.arc(cx,cy,160,0,Math.PI*2); oc.fill();
+      oc.strokeStyle = 'rgba(255,255,255,0.12)'; oc.lineWidth=1;
+      oc.beginPath(); oc.arc(cx,cy,90,0,Math.PI*2); oc.stroke();
+      oc.fillStyle = 'rgba(255,255,255,0.55)'; oc.font = '900 18px Orbitron, sans-serif'; oc.textAlign = 'center';
+      oc.fillText('「ARCH」', cx, cy-14);
     }
 
-    // ② 상단 타이틀 바 (반투명)
-    oc.fillStyle = 'rgba(0,0,0,0.75)';
-    oc.fillRect(0, 0, GW, 38);
-    oc.strokeStyle = 'rgba(255,255,255,0.25)';
-    oc.lineWidth = 1;
-    oc.beginPath(); oc.moveTo(0,38); oc.lineTo(GW,38); oc.stroke();
-    oc.fillStyle = 'rgba(255,255,255,0.55)';
-    oc.font = '700 10px Orbitron, monospace';
-    oc.textAlign = 'left';
+    oc.fillStyle = 'rgba(0,0,0,0.75)'; oc.fillRect(0,0,GW,38);
+    oc.fillStyle = 'rgba(255,255,255,0.55)'; oc.font = '700 10px Orbitron, sans-serif'; oc.textAlign = 'left';
     oc.fillText('「ARCH」 SUIKA PROTOCOL', PAD, 24);
 
-    // ③ 하단 점수 배너
-    const BY = GH; // banner starts here
-    oc.fillStyle = '#000';
-    oc.fillRect(0, BY, GW, BANNER);
-    oc.strokeStyle = 'rgba(255,255,255,0.4)';
-    oc.lineWidth = 1;
-    oc.beginPath(); oc.moveTo(0, BY); oc.lineTo(GW, BY); oc.stroke();
-
-    // 배너 내부 좌측 라인 포인트
-    oc.strokeStyle = 'rgba(255,255,255,0.15)';
-    oc.beginPath(); oc.moveTo(PAD, BY+10); oc.lineTo(PAD, BY+BANNER-10); oc.stroke();
-
-    oc.fillStyle = 'rgba(255,255,255,0.4)';
-    oc.font = '700 9px Orbitron, monospace';
-    oc.textAlign = 'left';
-    oc.fillText('CURRENT_SCORE', PAD + 12, BY + 26);
-
-    oc.fillStyle = '#ffffff';
-    oc.font = '900 28px Orbitron, monospace';
-    oc.shadowColor = '#fff';
-    oc.shadowBlur = 12;
-    oc.fillText(score.toLocaleString(), PAD + 12, BY + 58);
-    oc.shadowBlur = 0;
-
-    // 우측 BEST
-    oc.fillStyle = 'rgba(255,255,255,0.35)';
-    oc.font = '700 9px Orbitron, monospace';
-    oc.textAlign = 'right';
-    oc.fillText('BEST', GW - PAD, BY + 26);
-    oc.fillStyle = 'rgba(255,255,255,0.7)';
-    oc.font = '700 16px Orbitron, monospace';
-    oc.fillText(bestScore.toLocaleString(), GW - PAD, BY + 50);
-
-    // 구분선
-    oc.strokeStyle = 'rgba(255,255,255,0.1)';
-    oc.lineWidth = 1;
-    oc.beginPath();
-    oc.moveTo(GW - 110, BY + 10);
-    oc.lineTo(GW - 110, BY + BANNER - 10);
-    oc.stroke();
+    const BY = GH;
+    oc.fillStyle = '#000'; oc.fillRect(0, BY, GW, BANNER);
+    oc.strokeStyle = 'rgba(255,255,255,0.4)'; oc.beginPath(); oc.moveTo(0,BY); oc.lineTo(GW,BY); oc.stroke();
+    oc.fillStyle = 'rgba(255,255,255,0.4)'; oc.font = '700 9px Orbitron, sans-serif';
+    oc.fillText('CURRENT_SCORE', PAD+12, BY+26);
+    oc.fillStyle = '#ffffff'; oc.font = '900 28px Orbitron, sans-serif';
+    oc.fillText(score.toLocaleString(), PAD+12, BY+58);
+    oc.fillStyle = 'rgba(255,255,255,0.35)'; oc.textAlign = 'right'; oc.fillText('BEST', GW-PAD, BY+26);
+    oc.fillStyle = 'rgba(255,255,255,0.7)'; oc.font = '700 16px Orbitron, sans-serif'; oc.fillText(bestScore.toLocaleString(), GW-PAD, BY+50);
 
     capturedDataURL = out.toDataURL('image/png');
-
-    // 모달 표시
     document.getElementById('share-preview').src = capturedDataURL;
     document.getElementById('share-modal').classList.add('on');
-    document.getElementById('share-native-btn').style.display =
-      navigator.share ? '' : 'none';
-
-    notify('SCORE_RECORD_CAPTURED — SELECT_ACTION');
+    document.getElementById('share-native-btn').style.display = navigator.share ? '' : 'none';
+    notify('SCORE_RECORD_CAPTURED');
   } catch (e) {
-    notify('CAPTURE_FAILED: ' + e.message);
-    console.error(e);
+    notify('CAPTURE_FAILED: ' + e.message); console.error(e);
   }
-
-  btn.classList.remove('capturing');
-  btn.innerHTML = '<span class="cam-icon">⊡</span> CAPTURE_SCORE';
+  btn.classList.remove('capturing'); btn.innerHTML = '<span class="cam-icon">⊡</span> CAPTURE_SCORE';
 }
 
 function downloadCapture() {
   if (!capturedDataURL) return;
   const a = document.createElement('a');
-  a.href = capturedDataURL;
-  a.download = `ARCH_SUIKA_${score}_${Date.now()}.png`;
-  a.click();
-  notify('IMAGE_SAVED: ARCH_SUIKA_' + score + '.png');
-  closeShareModal();
+  a.href = capturedDataURL; a.download = `ARCH_SUIKA_${score}_${Date.now()}.png`; a.click();
+  notify('IMAGE_SAVED'); closeShareModal();
 }
 
 async function shareCapture() {
@@ -997,41 +869,28 @@ async function shareCapture() {
   try {
     const blob = await (await fetch(capturedDataURL)).blob();
     const file = new File([blob], `ARCH_SUIKA_${score}.png`, { type: 'image/png' });
-    await navigator.share({
-      title: '「ARCH」 SUIKA PROTOCOL',
-      text: `SCORE: ${score.toLocaleString()} — 「ARCH」 SUIKA PROTOCOL`,
-      files: [file],
-    });
-    notify('SCORE_SHARED_SUCCESSFULLY');
-  } catch (e) {
-    if (e.name !== 'AbortError') notify('SHARE_FAILED: ' + e.message);
-  }
+    await navigator.share({ title: '「ARCH」 SUIKA PROTOCOL', text: `SCORE: ${score.toLocaleString()}`, files: [file] });
+  } catch (e) {}
   closeShareModal();
 }
+function closeShareModal() { document.getElementById('share-modal').classList.remove('on'); }
+document.getElementById('share-modal').addEventListener('click', function(e){ if(e.target===this) closeShareModal(); });
 
-function closeShareModal() {
-  document.getElementById('share-modal').classList.remove('on');
-}
+setInterval(() => { document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB'); }, 1000);
 
-document.getElementById('share-modal').addEventListener('click', function(e) {
-  if (e.target === this) closeShareModal();
-});
-setInterval(() => {
-  document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('en-GB');
-}, 1000);
-
-// ── BOOT ──
-window.onload = () => {
+// ── BOOT (폰트 보장) ──
+window.onload = async () => {
+  if (document.fonts && document.fonts.ready) {
+    await document.fonts.ready;
+  }
   loadImages(() => {
     initPhysics();
     curLevel  = Math.ceil(Math.random() * 3);
     nextLevel = randLevel();
     unlocked  = new Set([1, 2, 3]);
     updateUI();
-    addLog('ARCH_SUIKA_PROTOCOL_INITIALIZED');
-    addLog('AWAITING_OPERATOR_INPUT...');
-    notify('ARCH SUIKA PROTOCOL — SYSTEM ONLINE');
+    addLog('SYSTEM_ONLINE');
+    notify('SYSTEM ONLINE');
     requestAnimationFrame(loop);
   });
 };

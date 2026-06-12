@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>「ARCH」 SUIKA PROTOCOL</title>
+  <link rel="icon" type="image/png" href="「ARCH」 Symbol Logo Black Ver.png">
+  <link rel="apple-touch-icon" href="「ARCH」 Symbol Logo Black Ver.png">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -309,6 +311,89 @@
       
       #sys-log { max-height: 150px; }
     }
+
+    /* ── THEME TOGGLE BUTTON ── */
+    #theme-toggle {
+      margin-left: 6px;
+      padding: 5px 11px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,.35);
+      color: rgba(255,255,255,.75);
+      font-family: var(--font); font-size: 9px; letter-spacing: 2px; font-weight: 700;
+      transition: .2s;
+    }
+    #theme-toggle:hover { background: #fff; color: #000; box-shadow: 0 0 14px rgba(127,127,127,.4); }
+
+    /* ════════════════════════════════════════
+       LIGHT MODE
+       ════════════════════════════════════════ */
+    body { transition: background .3s, color .3s; }
+
+    body.light { background: #f4f4f6; color: #111; }
+    body.light ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.3); }
+    body.light #cursor { border-color: #000; box-shadow: 0 0 12px rgba(0,0,0,.3); }
+    body.light #cursor::before, body.light #cursor::after { background: #000; }
+    body.light .scanline {
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.022) 2px, rgba(0,0,0,.022) 4px);
+    }
+
+    body.light header {
+      background: rgba(255,255,255,.96);
+      border-bottom-color: rgba(0,0,0,.18);
+      box-shadow: 0 0 30px rgba(0,0,0,.05);
+    }
+    body.light .hdr-title { text-shadow: 0 0 18px rgba(0,0,0,.25); }
+    body.light .hdr-sub { color: rgba(0,0,0,.4); }
+    body.light .hdr-right { color: rgba(0,0,0,.5); }
+    body.light .hdr-right span { color: #000; }
+
+    body.light #theme-toggle { border-color: rgba(0,0,0,.3); color: rgba(0,0,0,.7); }
+    body.light #theme-toggle:hover { background: #000; color: #fff; box-shadow: 0 0 14px rgba(0,0,0,.3); }
+
+    body.light .box { border-color: rgba(0,0,0,.15); background: rgba(0,0,0,.025); }
+    body.light .box::after { background: linear-gradient(90deg, transparent, rgba(0,0,0,.4), transparent); }
+    body.light .box-label { color: rgba(0,0,0,.4); }
+    body.light .box-val { text-shadow: 0 0 18px rgba(0,0,0,.2); }
+    body.light .howto { color: rgba(0,0,0,.6); }
+    body.light .howto b { color: #000; }
+    body.light #next-canvas { border-color: rgba(0,0,0,.3); box-shadow: 0 0 14px rgba(0,0,0,.08); }
+
+    body.light .crow.on { border-color: rgba(0,0,0,.15); }
+    body.light .crow.cur { border-color: rgba(0,0,0,.8); box-shadow: 0 0 8px rgba(0,0,0,.2); background: rgba(0,0,0,.05); }
+    body.light .cimg { border-color: rgba(0,0,0,.2); }
+    body.light .crow:not(.on) .cimg { filter: brightness(1) grayscale(1) opacity(.25); }
+    body.light .crow:not(.on) .cname { color: rgba(0,0,0,.25); }
+    body.light .crow:not(.on) .cpts { color: rgba(0,0,0,.12); }
+    body.light .cname { color: rgba(0,0,0,.7); }
+    body.light .cpts { color: rgba(0,0,0,.4); }
+    body.light #sys-log { color: rgba(0,0,0,.5) !important; }
+
+    body.light #gc {
+      border-color: rgba(0,0,0,.35);
+      box-shadow: 0 0 35px rgba(0,0,0,.08), inset 0 0 50px rgba(0,0,0,.04);
+    }
+
+    body.light #capture-btn {
+      border-color: rgba(0,0,0,.4); color: rgba(0,0,0,.7);
+      box-shadow: 0 0 10px rgba(0,0,0,.04);
+    }
+    body.light #capture-btn::before { background: linear-gradient(90deg, transparent, rgba(0,0,0,.25), transparent); }
+    body.light #capture-btn:hover { background: #000; color: #fff; border-color: #000; box-shadow: 0 0 22px rgba(0,0,0,.4); }
+
+    body.light #go-overlay { background: rgba(244,244,246,.94); border-color: rgba(0,0,0,.6); }
+    body.light .go-title { text-shadow: 0 0 25px rgba(0,0,0,.4); }
+    body.light .go-sub { color: rgba(0,0,0,.5); }
+    body.light .go-score { color: rgba(0,0,0,.6); }
+    body.light .go-score span { color: #000; text-shadow: 0 0 15px rgba(0,0,0,.3); }
+    body.light .btn-r { border-color: #000; color: #000; }
+    body.light .btn-r::before { background: linear-gradient(90deg, transparent, rgba(0,0,0,.25), transparent); }
+    body.light .btn-r:hover { background: #000; color: #fff; box-shadow: 0 0 22px rgba(0,0,0,.35); }
+
+    body.light #notif {
+      background: rgba(17,17,17,.96); color: #fff;
+      border-left-color: #fff; box-shadow: 0 8px 28px rgba(0,0,0,.2);
+    }
+    body.light .score-pop { color: #000; text-shadow: 0 0 12px rgba(0,0,0,.3); }
   </style>
 </head>
 <body>
@@ -335,6 +420,7 @@
   <div class="hdr-left">
     <div class="hdr-title">「ARCH」</div>
     <div class="hdr-sub">| SUIKA_PROTOCOL</div>
+    <button id="theme-toggle" onclick="toggleTheme()">◐ <span id="theme-label">LIGHT</span></button>
   </div>
   <div class="hdr-right">
     SYSTEM: <span>ONLINE</span><br>
@@ -446,6 +532,7 @@ let scorePopEls = [];
 
 let score = 0;
 let bestScore = +(localStorage.getItem('arch_suika_best') || 0);
+let lightMode = localStorage.getItem('arch_suika_theme') === 'light';
 let curLevel = 1, nextLevel = 1;
 let canDrop = true;
 let dropX = CW / 2;
@@ -618,27 +705,28 @@ function restartGame() {
 // ── RENDER ──
 function draw() {
   ctx.clearRect(0, 0, CW, CH);
-  ctx.fillStyle = '#000';
+  ctx.fillStyle = lightMode ? '#ececed' : '#000';
   ctx.fillRect(0, 0, CW, CH);
 
-  ctx.strokeStyle = 'rgba(255,255,255,.025)';
+  ctx.strokeStyle = lightMode ? 'rgba(0,0,0,.04)' : 'rgba(255,255,255,.025)';
   ctx.lineWidth = 1;
   for (let x = 0; x <= CW; x += 38) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CH); ctx.stroke(); }
   for (let y = 0; y <= CH; y += 38) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CW,y); ctx.stroke(); }
 
   const dangerAlpha = 0.12 + 0.08 * Math.sin(Date.now() / 300);
-  ctx.fillStyle = `rgba(255,255,255,${dangerAlpha * (dangerTimer > 0 ? 2.5 : 1)})`;
+  const dCh = lightMode ? '0,0,0' : '255,255,255';
+  ctx.fillStyle = `rgba(${dCh},${dangerAlpha * (dangerTimer > 0 ? 2.5 : 1)})`;
   ctx.fillRect(0, 0, CW, DANGER_Y);
 
   ctx.setLineDash([6,5]);
-  ctx.strokeStyle = dangerTimer > 0 ? `rgba(255,255,255,${0.6 + 0.4*Math.sin(Date.now()/150)})` : 'rgba(255,255,255,.28)';
+  ctx.strokeStyle = dangerTimer > 0 ? `rgba(${dCh},${0.6 + 0.4*Math.sin(Date.now()/150)})` : `rgba(${dCh},.28)`;
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(0,DANGER_Y); ctx.lineTo(CW,DANGER_Y); ctx.stroke();
   ctx.setLineDash([]);
 
   if (dangerTimer > 0) {
     ctx.font = '700 9px Orbitron, sans-serif';
-    ctx.fillStyle = `rgba(255,255,255,${0.5+0.5*Math.sin(Date.now()/120)})`;
+    ctx.fillStyle = `rgba(${dCh},${0.5+0.5*Math.sin(Date.now()/120)})`;
     ctx.textAlign = 'right';
     ctx.fillText('!! OVERFLOW_IMMINENT', CW - 8, DANGER_Y - 5);
     ctx.textAlign = 'left';
@@ -647,7 +735,7 @@ function draw() {
   if (canDrop && !gameOver) {
     const r = UNITS[curLevel-1].r;
     const gx = clamp(dropX, r+2, CW-r-2);
-    ctx.strokeStyle = 'rgba(255,255,255,.1)';
+    ctx.strokeStyle = lightMode ? 'rgba(0,0,0,.15)' : 'rgba(255,255,255,.1)';
     ctx.lineWidth = 1; ctx.setLineDash([4,4]);
     ctx.beginPath(); ctx.moveTo(gx,DROP_Y+r); ctx.lineTo(gx,CH); ctx.stroke();
     ctx.setLineDash([]);
@@ -658,8 +746,8 @@ function draw() {
     p.alpha -= .045; p.r += p.dr * .5;
     if (p.alpha <= 0) return false;
     ctx.save(); ctx.globalAlpha = p.alpha;
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-    ctx.shadowColor = '#fff'; ctx.shadowBlur = 8;
+    ctx.strokeStyle = lightMode ? '#000' : '#fff'; ctx.lineWidth = 2;
+    ctx.shadowColor = lightMode ? '#000' : '#fff'; ctx.shadowBlur = 8;
     ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.stroke();
     ctx.restore(); return true;
   });
@@ -686,9 +774,9 @@ function drawUnit(x, y, r, level, alpha) {
     ctx.fillText(level, x, y);
   }
   ctx.restore(); ctx.save(); ctx.globalAlpha = alpha;
-  ctx.strokeStyle = 'rgba(255,255,255,.65)'; ctx.lineWidth = 1.5;
+  ctx.strokeStyle = lightMode ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.65)'; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.stroke();
-  ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 5;
+  ctx.strokeStyle = lightMode ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.12)'; ctx.lineWidth = 5;
   ctx.beginPath(); ctx.arc(x, y, r+1, 0, Math.PI*2); ctx.stroke();
   ctx.restore();
 }
@@ -697,7 +785,7 @@ function drawNextPreview() {
   const nc = document.getElementById('next-canvas');
   const nx = nc.getContext('2d');
   nx.clearRect(0,0,72,72);
-  nx.fillStyle = '#000'; nx.fillRect(0,0,72,72);
+  nx.fillStyle = lightMode ? '#ececed' : '#000'; nx.fillRect(0,0,72,72);
 
   const r = UNITS[nextLevel-1].r;
   const scale = Math.min(30/r, 1);
@@ -714,7 +802,7 @@ function drawNextPreview() {
     nx.fillText(nextLevel, 0, 0);
   }
   nx.restore();
-  nx.strokeStyle = 'rgba(255,255,255,.3)'; nx.lineWidth = 1;
+  nx.strokeStyle = lightMode ? 'rgba(0,0,0,.3)' : 'rgba(255,255,255,.3)'; nx.lineWidth = 1;
   nx.beginPath(); nx.arc(36,36,35,0,Math.PI*2); nx.stroke();
 }
 
@@ -804,6 +892,20 @@ canvas.addEventListener('touchend', e => {
   dropUnit((e.changedTouches[0].clientX - r.left) * getScale());
 });
 
+// ── THEME ──
+function applyTheme() {
+  document.body.classList.toggle('light', lightMode);
+  const lbl = document.getElementById('theme-label');
+  if (lbl) lbl.textContent = lightMode ? 'DARK' : 'LIGHT';
+}
+function toggleTheme() {
+  lightMode = !lightMode;
+  localStorage.setItem('arch_suika_theme', lightMode ? 'light' : 'dark');
+  applyTheme();
+  drawNextPreview();
+  notify(lightMode ? 'LIGHT_MODE_ENGAGED' : 'DARK_MODE_ENGAGED');
+}
+
 // ── CAPTURE & SHARE ──
 let capturedDataURL = null;
 async function captureScreen() {
@@ -880,6 +982,7 @@ setInterval(() => { document.getElementById('clock').textContent = new Date().to
 
 // ── BOOT (폰트 보장) ──
 window.onload = async () => {
+  applyTheme();
   if (document.fonts && document.fonts.ready) {
     await document.fonts.ready;
   }
